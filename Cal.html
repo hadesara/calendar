@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <style type="text/css" charset="utf-8">
+        </style>
+         <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script> dra
+         <script type="application/javascript">
+            ( "use strict", 
+                fbCal = function() {
+                    //GET data from the webService and feed it to layOutDay
+                    return layOutDay = function(data) {
+                        if(! (data || data.constructor.name === "Array"))
+                        {
+                            console.error("input data is not valid. It must be a json object. For e.g. [ {start: 30, end: 150}, {start: 540, end: 600}");
+                        }
+                        else
+                        {
+                            //do all the drama here
+                        }
+                    };
+            })();
+        </script>
+    </head>
+    <body>
+        <canvas style="height:720px; width:620px; margin: 0 10px 0 10px;">
+        </canvas>
+    </body>
+</html>
