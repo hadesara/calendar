@@ -4,26 +4,97 @@
         <meta charset="UTF-8">
         <style type="text/css" charset="utf-8">
         </style>
-         <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script> dra
+         <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js" type="application/javascript"></script>
          <script type="application/javascript">
-            ( "use strict", 
+            ( "use strict",
+                Events = [],
+                Event = function (element) {
+                    this.start = element.start;
+                    this.maxStart = element.start;
+                    this.end = element.end;
+                    this.maxEnd = element.end;
+                    this.top=element.start;
+                    this.height=element.end-element.start;
+                    this.left=0;
+                    this.width=0;
+                    this.overlappingEvents=[];
+                }, 
+                addToEvents = function(Events, currentEvent) {
+                    if(Events.length==0){
+                        Events.push(currentEvent);
+                        return;
+                    }
+
+                    Events.map(function(element) {
+                        if((element.maxStart >= currentEvent.start && element.maxStart <= currentEvent.end) ||
+                            (element.maxEnd >= currentEvent.start && element.maxEnd <= currentEvent.end) ||
+                            (currentEvent.start >= element.maxStart && currentEvent.start <= element.maxEnd) ||
+                            (currentEvent.end >= element.maxStart && currentEvent.end <= element.maxEnd)) {
+                                if(element.maxStart>currentEvent.start)
+                                    element.maxStart=currentEvent.start;
+                                if(element.maxEnd<currentEvent.end)
+                                    element.maxEnd = currentEvent.end;
+                                addToEvents(element.overlappingEvents, currentEvent);
+                        }
+                        else {
+                            Events.push(currentEvent);
+                        }
+                    });
+                },
+                setPosition = function(element, width, left) {
+                    if(element.width==0)
+                        element.width=Math.floor(width/(element.overlappingEvents.length+1));
+                    element.left = left;
+                    element.overlappingEvents.map(function(overlappingEvent) {
+                        setPosition(overlappingEvent, width, element.width + element.left);
+                    });
+                },
+                addToDOM = function(newEvent) {
+                    //put it in template
+                    var template = $('#template').html();
+                    Mustache.parse(template);  
+                    var rendered = Mustache.render(template, newEvent);
+                    $('#calendar').append(rendered);
+                    newEvent.overlappingEvents.forEach(addToDOM);
+
+                },
+                sortByKey = function (array, key) {
+                    return array.sort(function(a, b) {
+                        var x = a[key]; var y = b[key];
+                        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                    });
+                },
                 fbCal = function() {
-                    //GET data from the webService and feed it to layOutDay
                     return layOutDay = function(data) {
-                        if(! (data || data.constructor.name === "Array"))
+                        //[ {start: 30, end: 150}, {start: 540, end: 600}, {start: 560, end: 620}, {start: 610, end: 670} ];
+
+                        if(!data || data.constructor.name !== 'Array')
                         {
-                            console.error("input data is not valid. It must be a json object. For e.g. [ {start: 30, end: 150}, {start: 540, end: 600}");
+                            console.error("input data is not valid. It must be a json object. For e.g. [{start: 30, end: 150}, {start: 540, end: 600}]");
                         }
                         else
                         {
-                            //do all the drama here
+                            data = sortByKey(data, 'start');
+                            data.map(function(element){
+                                addToEvents(Events, new Event(element));
+                            });
+                            Events.map(function(element){
+                                setPosition(element, 620,0);
+                            });
+                            Events.map(addToDOM);
                         }
                     };
             })();
         </script>
     </head>
     <body>
-        <canvas style="height:720px; width:620px; margin: 0 10px 0 10px;">
-        </canvas>
+         <script id="template" type="x-tmpl-mustache">
+            <span style="position:absolute;height:{{height}}px;width:{{width}}px;left:{{left}}px;top:{{top}}px;border: 1px solid red;">
+                Start: {{start}} End: {{end}}
+            </span>
+         </script>
+        <div id="calendar" style="height:720px; width:620px; margin: 0 10px 0 10px;position: relative;">
+        </div>
     </body>
 </html>
