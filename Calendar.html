@@ -189,10 +189,16 @@
                             $('#calendar').html("");
                             $('#hours').html("");
 
+                            // Add hours to left div
                             addHoursToDOM();
                             
+                            // First sort the events by its start time
+                            // to make further processing more efficient
                             events = sortByKey(events, 'start');
                             
+                            // Populate AllEvents from the givent array
+                            // in way that it will form a heirarchical json
+                            // from it
                             events.map( function (element){
                                 addToEvents(AllEvents, new Event(element));
                             });
@@ -203,6 +209,7 @@
                                 setPosition(event, Math.floor(600/event.depth), 0);
                             });
 
+                            // Add events to DOM
                             AllEvents.map(addToDOM);
                         }
                     };
